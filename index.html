@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <script src="https://docs.opencv.org/4.x/opencv.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Scan KTP + Dashboard</title>
+<title>Scan KTP Hotel</title>
 
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
@@ -21,6 +23,7 @@ th{background:#4CAF50;color:white}
 </style>
 </head>
 <body>
+
 <div class="container">
 <h2>📸 Scan KTP + Data Tamu</h2>
 
@@ -33,6 +36,7 @@ th{background:#4CAF50;color:white}
 <input id="alamat" placeholder="Alamat">
 <input id="telp" placeholder="No Telepon">
 <input id="nik" placeholder="No KTP">
+<input id="ttl" placeholder="Tempat / Tgl Lahir">
 <input id="jenis" placeholder="Jenis Tamu">
 
 <button onclick="saveData()">Simpan</button>
@@ -41,7 +45,7 @@ th{background:#4CAF50;color:white}
 <table>
 <thead>
 <tr>
-<th>No</th><th>Tanggal</th><th>Nama</th><th>Room</th><th>Alamat</th><th>Telp</th><th>NIK</th><th>Jenis</th><th>WA</th>
+<th>No</th><th>Tanggal</th><th>Nama</th><th>Room</th><th>Alamat</th><th>Telp</th><th>NIK</th><th>TTL</th><th>Jenis</th><th>WA</th>
 </tr>
 </thead>
 <tbody id="tableBody"></tbody>
@@ -49,35 +53,26 @@ th{background:#4CAF50;color:white}
 </div>
 
 <script>
+// 🔥 FIREBASE CONFIG
 const firebaseConfig = {
-  apiKey: "AIzaSyAfFdgcKhnUSji-x-HiCYSvZJcQUAuzRJM",
-  authDomain: "hotel-database-67b88.firebaseapp.com",
-  projectId: "hotel-database-67b88"
+  apiKey: "ISI_API_KEY_KAMU",
+  authDomain: "ISI_DOMAIN",
+  projectId: "ISI_PROJECT_ID"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// 📸 Kamera belakang
 const video = document.getElementById('video');
-
 navigator.mediaDevices.getUserMedia({
     video: {
-        facingMode: "environment"
+        facingMode: "environment",
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
     }
-})
-.then(stream => video.srcObject = stream);
+}).then(stream => video.srcObject = stream);
 
-navigator.mediaDevices.getUserMedia({
-    video: {
-        facingMode: { exact: "environment" }
-    }
-})
-.then(stream => video.srcObject = stream)
-.catch(err => {
-    // fallback kalau gagal
-    navigator.mediaDevices.getUserMedia({ video: true })
-    .then(stream => video.srcObject = stream);
-});
-
+// 🔍 OCR + parsing KTP
 async function capture(){
     if(video.videoWidth === 0){
         alert("Kamera belum siap");
@@ -90,47 +85,35 @@ async function capture(){
     canvas.height = video.videoHeight;
     ctx.drawImage(video,0,0);
 
-    const base64 = canvas.toDataURL().split(',')[1];
+    // 🔥 AUTO CROP (ambil tengah)
+    const cropWidth = canvas.width * 0.8;
+    const cropHeight = canvas.height * 0.5;
+    const startX = (canvas.width - cropWidth) / 2;
+    const startY = (canvas.height - cropHeight) / 2;
 
-    try{
-        const res = await fetch("https://vision.googleapis.com/v1/images:annotate?key=AIzaSyAfFdgcKhnUSji-x-HiCYSvZJcQUAuzRJM",{
-            method:"POST",
-            headers:{
-                "Content-Type":"application/json"
-            },
-            body: JSON.stringify({
-                requests:[{
-                    image:{content: base64},
-                    features:[{type:"TEXT_DETECTION"}]
-                }]
-            })
-        });
+    const croppedCanvas = document.createElement('canvas');
+    const croppedCtx = croppedCanvas.getContext('2d');
 
-        const data = await res.json();
+    croppedCanvas.width = cropWidth;
+    croppedCanvas.height = cropHeight;
 
-        if(!data.responses || !data.responses[0]){
-            alert("OCR gagal, cek API atau billing");
-            return;
-        }
+    croppedCtx.drawImage(
+        canvas,
+        startX, startY, cropWidth, cropHeight,
+        0, 0, cropWidth, cropHeight
+    );
 
-        const text = data.responses[0].fullTextAnnotation?.text || "";
+    const result = await Tesseract.recognize(croppedCanvas, 'ind');
+    const text = result.data.text.toUpperCase();
 
-        document.getElementById('nik').value = (text.match(/\d{16}/)||[''])[0];
-        document.getElementById('nama').value = (text.match(/Nama\s*:?\s*(.*)/i)||['',''])[1];
-        document.getElementById('alamat').value = (text.match(/Alamat\s*:?\s*(.*)/i)||['',''])[1];
+    console.log(text);
 
-    }catch(err){
-        alert("Error: " + err.message);
-    }
+    document.getElementById('nik').value = (text.match(/\d{16}/)||[''])[0];
+    document.getElementById('nama').value = (text.match(/NAMA\s*:?\s*(.*)/i)||['',''])[1];
+    document.getElementById('alamat').value = (text.match(/ALAMAT\s*:?\s*(.*)/i)||['',''])[1];
 }
 
-const text = data.responses[0].fullTextAnnotation?.text || "";
-
-    nik.value = (text.match(/\d{16}/)||[''])[0];
-    nama.value = (text.match(/Nama\s*:?\s*(.*)/i)||['',''])[1];
-    alamat.value = (text.match(/Alamat\s*:?\s*(.*)/i)||['',''])[1];
-
-
+// 💾 SIMPAN
 async function saveData(){
     const data = {
         tanggal: tanggal.value,
@@ -139,6 +122,7 @@ async function saveData(){
         alamat: alamat.value,
         telp: telp.value,
         nik: nik.value,
+        ttl: ttl.value,
         jenis: jenis.value
     };
 
@@ -146,6 +130,7 @@ async function saveData(){
     loadData();
 }
 
+// 📊 LOAD DATA
 async function loadData(){
     const snapshot = await db.collection("tamu").get();
     let html=""; let no=1;
@@ -160,6 +145,7 @@ async function loadData(){
         <td>${d.alamat||''}</td>
         <td>${d.telp||''}</td>
         <td>${d.nik||''}</td>
+        <td>${d.ttl||''}</td>
         <td>${d.jenis||''}</td>
         <td><a href="https://wa.me/${(d.telp||'').replace(/^0/,'62')}" target="_blank">Chat</a></td>
         </tr>`;
@@ -168,13 +154,24 @@ async function loadData(){
     document.getElementById('tableBody').innerHTML = html;
 }
 
+// 📥 EXPORT EXCEL
 async function exportExcel(){
     const snapshot = await db.collection("tamu").get();
     let data=[]; let no=1;
 
     snapshot.forEach(doc=>{
         const d = doc.data();
-        data.push({NO:no++,TANGGAL:d.tanggal,NAMA:d.nama,"NO ROOM":d.room,ALAMAT:d.alamat,"NO TELEPON":d.telp,"NO KTP":d.nik,"JENIS TAMU":d.jenis});
+        data.push({
+            NO:no++,
+            TANGGAL:d.tanggal,
+            NAMA:d.nama,
+            "NO ROOM":d.room,
+            ALAMAT:d.alamat,
+            "NO TELEPON":d.telp,
+            "NO KTP":d.nik,
+            TTL:d.ttl,
+            "JENIS TAMU":d.jenis
+        });
     });
 
     const ws = XLSX.utils.json_to_sheet(data);
@@ -185,5 +182,6 @@ async function exportExcel(){
 
 loadData();
 </script>
+
 </body>
 </html>
