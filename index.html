@@ -55,9 +55,9 @@ th{background:#4CAF50;color:white}
 <script>
 // 🔥 FIREBASE CONFIG
 const firebaseConfig = {
-  apiKey: "ISI_API_KEY_KAMU",
-  authDomain: "ISI_DOMAIN",
-  projectId: "ISI_PROJECT_ID"
+  apiKey: "AIzaSyAfFdgcKhnUSji-x-HiCYSvZJcQUAuzRJM",
+  authDomain: "hotel-database-67b88.firebaseapp.com",
+  projectId: "hotel-database-67b88"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
@@ -74,6 +74,8 @@ navigator.mediaDevices.getUserMedia({
 
 // 🔍 OCR + parsing KTP
 async function capture(){
+    alert("Tombol scan ditekan"); // 🔥 cek tombol
+
     if(video.videoWidth === 0){
         alert("Kamera belum siap");
         return;
@@ -85,32 +87,25 @@ async function capture(){
     canvas.height = video.videoHeight;
     ctx.drawImage(video,0,0);
 
-    // 🔥 AUTO CROP (ambil tengah)
-    const cropWidth = canvas.width * 0.8;
-    const cropHeight = canvas.height * 0.5;
-    const startX = (canvas.width - cropWidth) / 2;
-    const startY = (canvas.height - cropHeight) / 2;
+    alert("Mulai OCR..."); // 🔥 cek proses
 
-    const croppedCanvas = document.createElement('canvas');
-    const croppedCtx = croppedCanvas.getContext('2d');
+    try{
+        const result = await Tesseract.recognize(canvas, 'ind', {
+            logger: m => console.log(m)
+        });
 
-    croppedCanvas.width = cropWidth;
-    croppedCanvas.height = cropHeight;
+        alert("OCR selesai"); // 🔥 cek selesai
 
-    croppedCtx.drawImage(
-        canvas,
-        startX, startY, cropWidth, cropHeight,
-        0, 0, cropWidth, cropHeight
-    );
+        const text = result.data.text;
+        console.log(text);
 
-    const result = await Tesseract.recognize(croppedCanvas, 'ind');
-    const text = result.data.text.toUpperCase();
+        document.getElementById('nik').value = (text.match(/\d{16}/)||[''])[0];
+        document.getElementById('nama').value = (text.match(/NAMA\s*:?\s*(.*)/i)||['',''])[1];
+        document.getElementById('alamat').value = (text.match(/ALAMAT\s*:?\s*(.*)/i)||['',''])[1];
 
-    console.log(text);
-
-    document.getElementById('nik').value = (text.match(/\d{16}/)||[''])[0];
-    document.getElementById('nama').value = (text.match(/NAMA\s*:?\s*(.*)/i)||['',''])[1];
-    document.getElementById('alamat').value = (text.match(/ALAMAT\s*:?\s*(.*)/i)||['',''])[1];
+    }catch(err){
+        alert("ERROR OCR: " + err.message);
+    }
 }
 
 // 💾 SIMPAN
