@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scan KTP + Dashboard</title>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<style>
+body{font-family:Arial;background:#f4f4f4;margin:0;padding:20px}
+.container{max-width:900px;margin:auto;background:#fff;padding:20px;border-radius:10px}
+video{width:100%;border-radius:10px}
+button{padding:10px;margin-top:10px;background:#25D366;color:#fff;border:none;width:100%}
+input{padding:8px;margin-top:8px;width:100%}
+table{width:100%;border-collapse:collapse;margin-top:20px}
+th,td{border:1px solid #ddd;padding:8px}
+th{background:#4CAF50;color:white}
+</style>
+</head>
+<body>
+<div class="container">
+<h2>📸 Scan KTP + Data Tamu</h2>
+
+<video id="video" autoplay></video>
+<button onclick="capture()">Scan KTP</button>
+
+<input id="tanggal" placeholder="Tanggal">
+<input id="nama" placeholder="Nama">
+<input id="room" placeholder="No Room">
+<input id="alamat" placeholder="Alamat">
+<input id="telp" placeholder="No Telepon">
+<input id="nik" placeholder="No KTP">
+<input id="jenis" placeholder="Jenis Tamu">
+
+<button onclick="saveData()">Simpan</button>
+<button onclick="exportExcel()">Export Excel</button>
+
+<table>
+<thead>
+<tr>
+<th>No</th><th>Tanggal</th><th>Nama</th><th>Room</th><th>Alamat</th><th>Telp</th><th>NIK</th><th>Jenis</th><th>WA</th>
+</tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAfFdgcKhnUSji-x-HiCYSvZJcQUAuzRJM",
+  authDomain: "hotel-database-67b88.firebaseapp.com",
+  projectId: "hotel-database-67b88"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const video = document.getElementById('video');
+
+navigator.mediaDevices.getUserMedia({ video: true })
+.then(stream => video.srcObject = stream);
+
+async function capture(){
+    if(video.videoWidth === 0){
+        alert("Kamera belum siap");
+        return;
+    }
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video,0,0);
+
+    const base64 = canvas.toDataURL().split(',')[1];
+
+    try{
+        const res = await fetch("https://vision.googleapis.com/v1/images:annotate?key=AIzaSyAfFdgcKhnUSji-x-HiCYSvZJcQUAuzRJM",{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body: JSON.stringify({
+                requests:[{
+                    image:{content: base64},
+                    features:[{type:"TEXT_DETECTION"}]
+                }]
+            })
+        });
+
+        const data = await res.json();
+
+        if(!data.responses || !data.responses[0]){
+            alert("OCR gagal, cek API atau billing");
+            return;
+        }
+
+        const text = data.responses[0].fullTextAnnotation?.text || "";
+
+        document.getElementById('nik').value = (text.match(/\d{16}/)||[''])[0];
+        document.getElementById('nama').value = (text.match(/Nama\s*:?\s*(.*)/i)||['',''])[1];
+        document.getElementById('alamat').value = (text.match(/Alamat\s*:?\s*(.*)/i)||['',''])[1];
+
+    }catch(err){
+        alert("Error: " + err.message);
+    }
+}
+
+const text = data.responses[0].fullTextAnnotation?.text || "";
+
+    nik.value = (text.match(/\d{16}/)||[''])[0];
+    nama.value = (text.match(/Nama\s*:?\s*(.*)/i)||['',''])[1];
+    alamat.value = (text.match(/Alamat\s*:?\s*(.*)/i)||['',''])[1];
+
+
+async function saveData(){
+    const data = {
+        tanggal: tanggal.value,
+        nama: nama.value,
+        room: room.value,
+        alamat: alamat.value,
+        telp: telp.value,
+        nik: nik.value,
+        jenis: jenis.value
+    };
+
+    await db.collection("tamu").add(data);
+    loadData();
+}
+
+async function loadData(){
+    const snapshot = await db.collection("tamu").get();
+    let html=""; let no=1;
+
+    snapshot.forEach(doc=>{
+        const d = doc.data();
+        html += `<tr>
+        <td>${no++}</td>
+        <td>${d.tanggal||''}</td>
+        <td>${d.nama||''}</td>
+        <td>${d.room||''}</td>
+        <td>${d.alamat||''}</td>
+        <td>${d.telp||''}</td>
+        <td>${d.nik||''}</td>
+        <td>${d.jenis||''}</td>
+        <td><a href="https://wa.me/${(d.telp||'').replace(/^0/,'62')}" target="_blank">Chat</a></td>
+        </tr>`;
+    });
+
+    document.getElementById('tableBody').innerHTML = html;
+}
+
+async function exportExcel(){
+    const snapshot = await db.collection("tamu").get();
+    let data=[]; let no=1;
+
+    snapshot.forEach(doc=>{
+        const d = doc.data();
+        data.push({NO:no++,TANGGAL:d.tanggal,NAMA:d.nama,"NO ROOM":d.room,ALAMAT:d.alamat,"NO TELEPON":d.telp,"NO KTP":d.nik,"JENIS TAMU":d.jenis});
+    });
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Data Tamu");
+    XLSX.writeFile(wb, "data_tamu.xlsx");
+}
+
+loadData();
+</script>
+</body>
+</html>
