@@ -3,164 +3,705 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Paradise Center Point Hotel</title>
 
 <style>
-body{margin:0;font-family:Arial;background:#f4f4f4}
-header{background:#222;color:#fff;padding:15px;text-align:center}
-nav{display:flex;justify-content:center;background:#444}
-nav a{color:#fff;padding:14px;text-decoration:none}
-nav a:hover{background:#666}
-.hero{height:250px;background:url('https://images.unsplash.com/photo-1501117716987-c8e1ecb210f9') center/cover;display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;font-weight:bold}
-.container{padding:20px}
-.rooms{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px}
-.card{background:#fff;padding:15px;border-radius:14px;box-shadow:0 4px 10px rgba(0,0,0,0.1)}
+body{
+margin:0;
+font-family:'Segoe UI',sans-serif;
+background:#f5f5f5;
+color:#333;
+}
 
-.slider{position:relative;overflow:hidden}
-.slide{display:none;width:100%;border-radius:10px;cursor:pointer;opacity:0;transition:opacity 0.5s}
-.slide.active{display:block;opacity:1}
+/* SCROLL ANIMATION */
+.fade-up{
+opacity:0;
+transform:translateY(40px);
+transition:all 0.8s ease;
+}
 
-.dots{text-align:center;margin-top:8px}
-.dot{height:8px;width:8px;background:#bbb;border-radius:50%;display:inline-block;margin:3px}
-.dot.active{background:#333}
+.fade-up.show{
+opacity:1;
+transform:translateY(0);
+}
 
-.facilities{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px}
-.facilities img{width:100%;border-radius:10px;cursor:pointer}
-footer{background:#222;color:#fff;text-align:center;padding:10px;margin-top:20px}
-iframe{width:100%;height:300px;border:0;border-radius:10px}
-.whatsapp{display:inline-block;background:#25D366;color:white;padding:12px 18px;border-radius:8px;text-decoration:none;margin-top:10px}
+/* FLOATING WA */
+.floating-wa{
+position:fixed;
+bottom:20px;
+right:20px;
+background:#25D366;
+color:white;
+padding:15px 18px;
+border-radius:50px;
+font-size:18px;
+text-decoration:none;
+box-shadow:0 5px 15px rgba(0,0,0,0.3);
+z-index:9999;
+transition:0.3s;
+}
 
-.modal{display:none;position:fixed;z-index:999;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.9);justify-content:center;align-items:center}
-.modal img{max-width:90%;max-height:90%;border-radius:10px}
+.floating-wa:hover{
+background:#1ebe5d;
+transform:scale(1.05);
+}
+
+/* HERO */
+.hero{
+position:relative;
+height:90vh;
+overflow:hidden;
+}
+
+.hero img{
+position:absolute;
+width:100%;
+height:100%;
+object-fit:cover;
+opacity:0;
+transition:1s;
+}
+
+.hero img.active{
+opacity:1;
+}
+
+.hero::after{
+content:"";
+position:absolute;
+width:100%;
+height:100%;
+background:linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.2));
+}
+
+.hero-text{
+position:absolute;
+bottom:60px;
+left:50%;
+transform:translateX(-50%);
+color:white;
+text-align:center;
+z-index:2;
+}
+
+.hero-text h1{
+font-size:42px;
+margin-bottom:10px;
+}
+
+.hero-text p{
+font-size:18px;
+}
+
+.btn{
+display:inline-block;
+margin-top:15px;
+padding:12px 25px;
+background:#25D366;
+color:white;
+border-radius:30px;
+text-decoration:none;
+transition:0.3s;
+}
+
+.btn:hover{
+background:#1ebe5d;
+}
+
+/* SECTION */
+.section{
+max-width:1100px;
+margin:auto;
+padding:60px 20px;
+text-align:center;
+}
+
+.section h2{
+margin-bottom:20px;
+font-size:28px;
+}
+
+/* ROOMS */
+.rooms{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+gap:25px;
+}
+
+.card{
+background:white;
+border-radius:15px;
+overflow:hidden;
+box-shadow:0 10px 25px rgba(0,0,0,0.1);
+transition:0.3s;
+}
+
+.card:hover{
+transform:translateY(-5px);
+}
+
+.card > img{
+width:100%;
+height:220px;
+object-fit:cover;
+}
+
+.card-body{
+padding:15px;
+}
+
+.card-body h3{
+margin:10px 0;
+}
+
+/* GALLERY */
+.gallery{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:15px;
+}
+
+.gallery img{
+width:100%;
+height:200px;
+object-fit:cover;
+border-radius:10px;
+cursor:pointer;
+}
+
+/* LIGHTBOX */
+#zoom{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.9);
+display:none;
+justify-content:center;
+align-items:center;
+z-index:999;
+}
+
+#zoom img{
+max-width:90%;
+max-height:90%;
+}
+
+/* MAP */
+iframe{
+width:100%;
+height:350px;
+border:0;
+border-radius:10px;
+}
+
+/* FOOTER */
+.footer{
+background:#111;
+color:white;
+padding:40px 20px;
+text-align:center;
+}
+
+#navbar{
+position:fixed;
+top:0;
+width:100%;
+padding:15px 20px;
+z-index:999;
+transition:0.3s;
+background:transparent;
+color:white;
+}
+
+.nav-container{
+display:flex;
+justify-content:space-between;
+align-items:center;
+max-width:1100px;
+margin:auto;
+}
+
+#navbar.scrolled{
+background:white;
+color:#333;
+box-shadow:0 3px 10px rgba(0,0,0,0.1);
+}
+
+#loader{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:white;
+display:flex;
+justify-content:center;
+align-items:center;
+z-index:9999;
+transition:0.8s;
+}
+
+#loader.hide{
+opacity:0;
+visibility:hidden;
+}
+
+#loader h1{
+font-size:26px;
+font-weight:500;
+letter-spacing:3px;
+color:#111;
+}
+
+.sticky-booking{
+position:fixed;
+bottom:0;
+left:0;
+width:100%;
+background:#25D366;
+color:white;
+text-align:center;
+padding:15px;
+font-size:18px;
+text-decoration:none;
+z-index:9998;
+box-shadow:0 -3px 10px rgba(0,0,0,0.2);
+transition:0.3s;
+}
+
+.sticky-booking:hover{
+background:#1ebe5d;
+}
+
+html{
+scroll-behavior:smooth;
+}
+
+.room-slider{
+position:relative;
+width:100%;
+height:220px;
+overflow:hidden;
+border-radius:15px;
+}
+
+.room-slider img{
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+object-fit:cover;
+opacity:0;
+transition:0.6s ease;
+display:block;
+}
+
+.room-slider img.active{
+opacity:1;
+}
+
+/* BUTTON */
+.slider-btn{
+position:absolute;
+top:50%;
+transform:translateY(-50%);
+background:rgba(0,0,0,0.5);
+color:white;
+border:none;
+padding:8px 12px;
+cursor:pointer;
+border-radius:50%;
+z-index:2;
+}
+
+.prev{ left:10px; }
+.next{ right:10px; }
+
+/* DOT */
+.dots{
+position:absolute;
+bottom:10px;
+width:100%;
+text-align:center;
+z-index:2;
+}
+
+.dots span{
+display:inline-block;
+width:8px;
+height:8px;
+margin:0 4px;
+background:white;
+opacity:0.5;
+border-radius:50%;
+cursor:pointer;
+}
+
+.dots span.active{
+opacity:1;
+transform:scale(1.2);
+}
+
+.room-slider{
+background:#eee;
+}
+
 </style>
 </head>
 
 <body>
-<header>
+
+<div id="loader">
+  <h1>Paradise Center Point Hotel</h1>
+</div>
+
+<div id="navbar">
+  <div class="nav-container">
+    <h2>Paradise Center Point Hotel</h2>
+    <a href="#rooms">Kamar</a>
+  </div>
+</div>
+
+<!-- ZOOM -->
+<div id="zoom" onclick="closeZoom()">
+<img id="zoomImg">
+</div>
+
+<!-- HERO -->
+<div class="hero">
+<img src="2.jpg" class="active">
+<img src="lobby.webp">
+<img src="cafe.jpg">
+
+<div class="hero-text">
 <h1>Paradise Center Point Hotel</h1>
-<p>Nyaman, Elegan, dan Terjangkau</p>
-</header>
-
-<nav>
-<a href="#rooms">Kamar</a>
-<a href="#fasilitas">Fasilitas</a>
-<a href="#kontak">Kontak</a>
-</nav>
-
-<div class="slider" style="height:300px;position:relative;overflow:hidden">
-<img class="slide active" src="https://images.unsplash.com/photo-1566073771259-6a8506099945" style="height:300px;object-fit:cover;width:100%">
-<img class="slide" src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa" style="height:300px;object-fit:cover;width:100%">
-<img class="slide" src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b" style="height:300px;object-fit:cover;width:100%">
-<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:white;font-size:28px;font-weight:bold;text-align:center;background:rgba(0,0,0,0.4);padding:10px 20px;border-radius:10px">
-Selamat Datang di Hotel Kami
+<p>Nikmati pengalaman menginap yang nyaman, modern, dan berkelas di jantung Kota Batu. 
+Pilihan terbaik untuk liburan keluarga maupun perjalanan bisnis Anda.</p>
+<a href="#rooms" class="btn">Lihat Kamar</a>
 </div>
 </div>
 
-<div class="container" id="rooms">
-<h2>Type Kamar</h2>
+<!-- TENTANG -->
+<div class="section fade-up">
+<h2>Tentang Kami</h2>
+<p>
+Paradise Center Point Hotel hadir sebagai pilihan akomodasi terbaik dengan konsep modern dan kenyamanan maksimal. 
+Berlokasi strategis di Kota Batu, hotel kami memberikan akses mudah ke berbagai destinasi wisata populer, pusat perbelanjaan, dan kuliner terbaik.
+</p>
 
-<div class="rooms">
-
-<div class="card">
-<div class="slider" ontouchstart="startTouch(event,this)" ontouchend="endTouch(event,this)">
-<img class="slide active" src="https://images.unsplash.com/photo-1560067174-8943c44b4b3f" onclick="zoomImage(this)">
-<img class="slide" src="https://images.unsplash.com/photo-1551776235-dde6d4829808" onclick="zoomImage(this)">
-</div>
-<div class="dots"></div>
-<h3>Superior Room</h3>
-<p>Kamar nyaman dengan fasilitas lengkap untuk 2 orang.</p>
+<p>
+Dengan pelayanan ramah, fasilitas lengkap, dan suasana yang hangat, kami berkomitmen memberikan pengalaman menginap yang tak terlupakan untuk setiap tamu.
+</p>
 </div>
 
-<div class="card">
-<div class="slider" ontouchstart="startTouch(event,this)" ontouchend="endTouch(event,this)">
-<img class="slide active" src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb" onclick="zoomImage(this)">
-<img class="slide" src="https://images.unsplash.com/photo-1505691938895-1758d7feb511" onclick="zoomImage(this)">
-</div>
-<div class="dots"></div>
-<h3>Deluxe Room</h3>
-<p>Kamar lebih luas dan nyaman untuk keluarga.</p>
+<!-- ROOMS -->
+<div class="section fade-up" id="rooms">
+<h2>Tipe Kamar</h2>
+<p>
+Kami menyediakan berbagai pilihan kamar yang dirancang untuk kenyamanan dan kebutuhan Anda. 
+Setiap kamar dilengkapi dengan fasilitas modern dan desain interior yang elegan.
+</p>
+
+<div class="rooms" id="roomList"></div>
 </div>
 
-</div>
-</div>
-
-<div class="container" id="fasilitas">
+<!-- FASILITAS -->
+<div class="section fade-up">
 <h2>Fasilitas Hotel</h2>
-<div class="facilities">
-<img src="https://images.unsplash.com/photo-1551632436-cbf8dd35adfa" onclick="zoomImage(this)">
-<img src="https://images.unsplash.com/photo-1555992336-03a23c7b20ee" onclick="zoomImage(this)">
-<img src="https://images.unsplash.com/photo-1542318423-7a9d0c9f85a8" onclick="zoomImage(this)">
-<img src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4" onclick="zoomImage(this)">
+<p>
+Kami menyediakan berbagai fasilitas untuk menunjang kenyamanan Anda selama menginap:
+</p>
+
+<p>
+✔ Free Wifi Cepat & Stabil<br>
+✔ Sarapan Gratis (Free Breakfast)<br>
+✔ Air Conditioner di setiap kamar<br>
+✔ TV 43 Inch<br>
+✔ Area Parkir Luas & Aman<br>
+✔ Layanan Resepsionis 24 Jam
+</p>
+
+<h3 style="margin-top:30px;">Wisata Terdekat</h3>
+<p>
+Hotel kami berada dekat dengan berbagai destinasi wisata favorit di Kota Batu:
+</p>
+
+<p>
+📍 Jatim Park 1, 2 & 3<br>
+📍 Museum Angkut<br>
+📍 Lippo Plaza Batu<br>
+📍 Alun-Alun Kota Batu
+</p>
+
+<p>
+Lokasi yang sempurna untuk Anda yang ingin menikmati liburan tanpa repot perjalanan jauh.
+</p>
+</div>
+
+<!-- GALERI -->
+<div class="section fade-up">
+<h2>Galeri Hotel</h2>
+<p>
+Lihat langsung suasana hotel, kamar, dan fasilitas kami melalui galeri berikut. 
+Semua dirancang untuk memberikan kenyamanan dan pengalaman terbaik selama Anda menginap.
+</p>
+
+<div class="gallery">
+<img src="lobby.webp" onclick="zoom(this.src)">
+<img src="cafe.jpg" onclick="zoom(this.src)">
+<img src="fn2.webp" onclick="zoom(this.src)">
+<img src="km2.webp" onclick="zoom(this.src)">
+<img src="2.jpg" onclick="zoom(this.src)">
+<img src="bk.jpg" onclick="zoom(this.src)">
+<img src="fn3.webp" onclick="zoom(this.src)">
+<img src="dl1.webp" onclick="zoom(this.src)">
 </div>
 </div>
 
-<div class="container" id="kontak">
-<h2>Lokasi & Reservasi</h2>
-<iframe src="https://www.google.com/maps?q=-7.8797,112.5239&output=embed"></iframe>
-<p>Alamat: Jl. Diponegoro No. 5B, Kota Batu</p>
-<a class="whatsapp" href="https://wa.me/6285183273332" target="_blank">Hubungi Admin via WhatsApp</a>
-</div>
+<!-- MAP -->
+<div class="section fade-up">
+<h2>Lokasi Kami</h2>
 
-<footer>
-<p>&copy; 2026 Paradise Center Point Hotel</p>
-</footer>
+<iframe src="https://www.google.com/maps?q=Paradise+Center+Point+Hotel+Blitar&output=embed"></iframe>
 
-<div class="modal" id="modal" onclick="closeModal()">
-<img id="modalImg">
-</div>
 
 <script>
-// INIT DOTS
-document.querySelectorAll('.card').forEach(card=>{
-let slides = card.querySelectorAll('.slide');
-let dotsContainer = card.querySelector('.dots');
-slides.forEach((_,i)=>{
-let dot=document.createElement('span');
-dot.classList.add('dot');
-if(i===0) dot.classList.add('active');
-dotsContainer.appendChild(dot);
-});
+
+/* HERO SLIDER */
+let slides=document.querySelectorAll(".hero img");
+let index=0;
+
+setInterval(()=>{
+slides[index].classList.remove("active");
+index=(index+1)%slides.length;
+slides[index].classList.add("active");
+},4000);
+
+/* DATA KAMAR */
+const rooms=[
+{
+name:"Junior Room",
+imgs:["jn1.webp","jn2.webp"],
+desc:"Double Bed | Non View | Occupancy 2 Person"
+},
+{
+name:"Junior King",
+imgs:["jk1.webp","jk2.webp"],
+desc:"Double Bed | Sofa | Occupancy 2 Person"
+},
+{
+name:"Junior View",
+imgs:["jv1.webp"],
+desc:"Double Bed | Mountaint & City Light View | Occupancy 2 Person"
+},
+{
+name:"Superior Room",
+imgs:["sp1.webp","sp2.webp"],
+desc:"Twin Double Bed | Non View | Occupancy 4 Person"
+},
+{
+name:"Superior Fantasy Room",
+imgs:["fn1.webp","fn2.webp","fn3.webp"],
+desc:"Twin Double Bed | Piratess & Princess Theme | Occupancy 4 Person"
+},
+{
+name:"Deluxe Room",
+imgs:["dl1.webp","dl2.webp"],
+desc:"Twin Double Bed | Mountaint & City Light View | Occupancy 4 Person"
+},
+{
+name:"Executive Room",
+imgs:["exe1.webp","exe2.webp"],
+desc:"Twin Double Bed | Balcony | Sofa | Occupancy 4 Person"
+}
+];
+
+
+let container=document.getElementById("roomList");
+
+rooms.forEach((r,i)=>{
+container.innerHTML+=`
+<div class="card">
+
+<div class="room-slider" id="slider-${i}">
+${r.imgs.map((img,index)=>`
+<img src="${img}" class="${index===0?'active':''}" onclick="zoom(this.src)">
+`).join('')}
+
+<button class="slider-btn prev" onclick="prevSlide(${i})">‹</button>
+<button class="slider-btn next" onclick="nextSlide(${i})">›</button>
+
+<div class="dots">
+${r.imgs.map((_,d)=>`
+<span onclick="goSlide(${i},${d})" class="${d===0?'active':''}"></span>
+`).join('')}
+</div>
+
+</div>
+
+<div class="card-body">
+<h3>${r.name}</h3>
+<p>${r.desc}</p>
+
+<a class="btn" href="https://wa.me/6285183273332?text=Saya%20ingin%20reservasi%20${r.name}">
+Reservasi
+</a>
+
+</div>
+</div>
+`;
 });
 
-function showSlide(card, index){
-let slides=card.querySelectorAll('.slide');
-let dots=card.querySelectorAll('.dot');
-slides.forEach(s=>s.classList.remove('active'));
-dots.forEach(d=>d.classList.remove('active'));
-slides[index].classList.add('active');
-dots[index].classList.add('active');
+/* ZOOM */
+function zoom(src){
+document.getElementById("zoom").style.display="flex";
+document.getElementById("zoomImg").src=src;
 }
 
-// AUTO SLIDE
+function closeZoom(){
+document.getElementById("zoom").style.display="none";
+}
+
+let sliders=[];
+
+rooms.forEach((r,i)=>{
+sliders[i]=0;
+});
+
+function showSlide(sliderIndex,slideIndex){
+let slider=document.querySelectorAll(".room-slider")[sliderIndex];
+let imgs=slider.querySelectorAll("img");
+let dots=slider.querySelectorAll(".dots span");
+
+imgs.forEach(img=>img.classList.remove("active"));
+dots.forEach(dot=>dot.classList.remove("active"));
+
+imgs[slideIndex].classList.add("active");
+dots[slideIndex].classList.add("active");
+
+sliders[sliderIndex]=slideIndex;
+}
+
+function nextSlide(i){
+let slider=document.querySelectorAll(".room-slider")[i];
+let total=slider.querySelectorAll("img").length;
+
+let next=(sliders[i]+1)%total;
+showSlide(i,next);
+}
+
+function prevSlide(i){
+let slider=document.querySelectorAll(".room-slider")[i];
+let total=slider.querySelectorAll("img").length;
+
+let prev=(sliders[i]-1+total)%total;
+showSlide(i,prev);
+}
+
+function goSlide(i,index){
+showSlide(i,index);
+}
+
 setInterval(()=>{
-document.querySelectorAll('.card').forEach(card=>{
-let slides=card.querySelectorAll('.slide');
-let current=[...slides].findIndex(s=>s.classList.contains('active'));
-let next=(current+1)%slides.length;
-showSlide(card,next);
+sliders.forEach((_,i)=>{
+nextSlide(i);
 });
 },4000);
 
-// SWIPE
+document.querySelectorAll(".room-slider").forEach((slider, i)=>{
 let startX=0;
-function startTouch(e,el){startX=e.changedTouches[0].screenX;el.dataset.startX=startX}
-function endTouch(e,el){
-let endX=e.changedTouches[0].screenX;
-let diff=endX-el.dataset.startX;
-let card=el.parentElement;
-let slides=card.querySelectorAll('.slide');
-let current=[...slides].findIndex(s=>s.classList.contains('active'));
-if(diff>50){current=(current-1+slides.length)%slides.length}
-else if(diff<-50){current=(current+1)%slides.length}
-showSlide(card,current);
-}
 
-// ZOOM
-function zoomImage(img){
-document.getElementById('modal').style.display='flex';
-document.getElementById('modalImg').src=img.src;
+slider.addEventListener("touchstart",(e)=>{
+startX=e.touches[0].clientX;
+});
+
+slider.addEventListener("touchend",(e)=>{
+let endX=e.changedTouches[0].clientX;
+
+if(startX - endX > 50){
+nextSlide(i);
 }
-function closeModal(){document.getElementById('modal').style.display='none'}
+if(endX - startX > 50){
+prevSlide(i);
+}
+});
+});
+
+</script>
+
+<script>
+window.addEventListener("scroll", function(){
+let nav = document.getElementById("navbar");
+
+if(window.scrollY > 50){
+nav.classList.add("scrolled");
+}else{
+nav.classList.remove("scrolled");
+}
+});
+</script>
+
+<script>
+const observer = new IntersectionObserver(entries=>{
+entries.forEach(entry=>{
+if(entry.isIntersecting){
+entry.target.classList.add("show");
+}
+});
+},{threshold:0.2});
+
+document.querySelectorAll(".fade-up").forEach(el=>{
+observer.observe(el);
+});
+</script>
+
+<a href="https://wa.me/6285183273332?text=Halo%20saya%20ingin%20reservasi%20hotel"
+class="floating-wa">
+💬 Chat Kami
+</a>
+
+<a href="https://wa.me/6285183273332?text=Saya%20ingin%20reservasi%20hotel"
+class="sticky-booking">
+Booking Sekarang
+</a>
+
+<footer class="footer">
+
+<div class="footer-container">
+
+<div class="footer-col">
+<h3>Alamat</h3>
+<p>
+📍  Jl. Diponegoro No.5 B, Sisir,<br>
+ Kec. Batu, Kota Batu, Jawa Timur 65314
+</p>
+</div>
+
+<div class="footer-col">
+<h3>Kontak</h3>
+<p>☎ 0341-3382844</p>
+<p>💬 +6285183273332</p>
+<p>🕒 Receptionist 24 Jam</p>
+</div>
+
+</div>
+
+<div class="footer-bottom">
+© 2026 Paradise Center Point Hotel. All Rights Reserved
+</div>
+
+</footer>
+
+<script>
+window.addEventListener("load", function(){
+setTimeout(()=>{
+document.getElementById("loader").classList.add("hide");
+},1200);
+});
 </script>
 
 </body>
